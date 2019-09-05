@@ -15,35 +15,18 @@ namespace System.Collections.Immutable
         /// <remarks>
         /// This struct can and should be kept in exact sync with the other binary tree enumerators:
         /// <see cref="ImmutableList{T}.Enumerator"/>, <see cref="ImmutableSortedDictionary{TKey, TValue}.Enumerator"/>, and <see cref="ImmutableSortedSet{T}.Enumerator"/>.
-        ///
-        /// CAUTION: when this enumerator is actually used as a valuetype (not boxed) do NOT copy it by assigning to a second variable
-        /// or by passing it to another method.  When this enumerator is disposed of it returns a mutable reference type stack to a resource pool,
-        /// and if the value type enumerator is copied (which can easily happen unintentionally if you pass the value around) there is a risk
-        /// that a stack that has already been returned to the resource pool may still be in use by one of the enumerator copies, leading to data
-        /// corruption and/or exceptions.
         /// </remarks>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public struct Enumerator : IEnumerator<T>, ISecurePooledObjectUser, IStrongEnumerator<T>
+        public struct Enumerator : IEnumerator<T>, IStrongEnumerator<T>
         {
             /// <summary>
-            /// The resource pool of reusable mutable stacks for purposes of enumeration.
+            /// The height of the node at which the indexer is used to enumerate instead of the stack
             /// </summary>
-            /// <remarks>
-            /// We utilize this resource pool to make "allocation free" enumeration achievable.
-            /// </remarks>
-            private static readonly SecureObjectPool<Stack<RefAsValueType<Node>>, Enumerator> s_EnumeratingStacks =
-                new SecureObjectPool<Stack<RefAsValueType<Node>>, Enumerator>();
-
+            private const int NodeEnumerateByIndexHeight = 4;
             /// <summary>
             /// The builder being enumerated, if applicable.
             /// </summary>
             private readonly Builder _builder;
-
-            /// <summary>
-            /// A unique ID for this instance of this enumerator.
-            /// Used to protect pooled objects from use after they are recycled.
-            /// </summary>
-            private readonly int _poolUserId;
 
             /// <summary>
             /// The starting index of the collection at which to begin enumeration.
@@ -73,12 +56,74 @@ namespace System.Collections.Immutable
             /// <summary>
             /// The stack to use for enumerating the binary tree.
             /// </summary>
-            private SecurePooledObject<Stack<RefAsValueType<Node>>> _stack;
+            private Node _stackSlot0;
+            private Node _stackSlot1;
+            private Node _stackSlot2;
+            private Node _stackSlot3;
+            private Node _stackSlot4;
+            private Node _stackSlot5;
+            private Node _stackSlot6;
+            private Node _stackSlot7;
+            private Node _stackSlot8;
+            private Node _stackSlot9;
+            private Node _stackSlot10;
+            private Node _stackSlot11;
+            private Node _stackSlot12;
+            private Node _stackSlot13;
+            private Node _stackSlot14;
+            private Node _stackSlot15;
+            private Node _stackSlot16;
+            private Node _stackSlot17;
+            private Node _stackSlot18;
+            private Node _stackSlot19;
+            private Node _stackSlot20;
+            private Node _stackSlot21;
+            private Node _stackSlot22;
+            private Node _stackSlot23;
+            private Node _stackSlot24;
+            private Node _stackSlot25;
+            private Node _stackSlot26;
+            private Node _stackSlot27;
+            private Node _stackSlot28;
+            private Node _stackSlot29;
+            private Node _stackSlot30;
+            private Node _stackSlot31;
+            private Node _stackSlot32;
+            private Node _stackSlot33;
+            private Node _stackSlot34;
+            private Node _stackSlot35;
+            private Node _stackSlot36;
+            private Node _stackSlot37;
+            private Node _stackSlot38;
+            private Node _stackSlot39;
+            private Node _stackSlot40;
+            private Node _stackSlot41;
+            private Node _stackSlot42;
+            private Node _stackSlot43;
+            private Node _stackSlot44;
+            private Node _stackSlot45;
+            private Node _stackSlot46;
+
+            /// <summary>
+            /// The index of the top of the stack
+            /// </summary>
+            private int _stackTopIndex;
 
             /// <summary>
             /// The node currently selected.
             /// </summary>
             private Node _current;
+
+
+            /// <summary>
+            /// The node currently being enumerated by index
+            /// </summary>
+            private Node _currentNodeEnumeratingByIndex;
+
+            /// <summary>
+            /// The enumeration index of the current node being enumerated by index
+            /// </summary>
+            private int _currentIndex;
 
             /// <summary>
             /// The version of the builder (when applicable) that is being enumerated.
@@ -104,26 +149,66 @@ namespace System.Collections.Immutable
                 _root = root;
                 _builder = builder;
                 _current = null;
+                _currentNodeEnumeratingByIndex = null;
                 _startIndex = startIndex >= 0 ? startIndex : (reversed ? root.Count - 1 : 0);
+                _currentIndex = _startIndex;
                 _count = count == -1 ? root.Count : count;
                 _remainingCount = _count;
                 _reversed = reversed;
                 _enumeratingBuilderVersion = builder != null ? builder.Version : -1;
-                _poolUserId = SecureObjectPool.NewId();
-                _stack = null;
+                _stackSlot0 = default;
+                _stackSlot1 = default;
+                _stackSlot2 = default;
+                _stackSlot3 = default;
+                _stackSlot4 = default;
+                _stackSlot5 = default;
+                _stackSlot6 = default;
+                _stackSlot7 = default;
+                _stackSlot8 = default;
+                _stackSlot9 = default;
+                _stackSlot10 = default;
+                _stackSlot11 = default;
+                _stackSlot12 = default;
+                _stackSlot13 = default;
+                _stackSlot14 = default;
+                _stackSlot15 = default;
+                _stackSlot16 = default;
+                _stackSlot17 = default;
+                _stackSlot18 = default;
+                _stackSlot19 = default;
+                _stackSlot20 = default;
+                _stackSlot21 = default;
+                _stackSlot22 = default;
+                _stackSlot23 = default;
+                _stackSlot24 = default;
+                _stackSlot25 = default;
+                _stackSlot26 = default;
+                _stackSlot27 = default;
+                _stackSlot28 = default;
+                _stackSlot29 = default;
+                _stackSlot30 = default;
+                _stackSlot31 = default;
+                _stackSlot32 = default;
+                _stackSlot33 = default;
+                _stackSlot34 = default;
+                _stackSlot35 = default;
+                _stackSlot36 = default;
+                _stackSlot37 = default;
+                _stackSlot38 = default;
+                _stackSlot39 = default;
+                _stackSlot40 = default;
+                _stackSlot41 = default;
+                _stackSlot42 = default;
+                _stackSlot43 = default;
+                _stackSlot44 = default;
+                _stackSlot45 = default;
+                _stackSlot46 = default;
+                _stackTopIndex = -1;
                 if (_count > 0)
                 {
-                    if (!s_EnumeratingStacks.TryTake(this, out _stack))
-                    {
-                        _stack = s_EnumeratingStacks.PrepNew(this, new Stack<RefAsValueType<Node>>(root.Height));
-                    }
-
                     this.ResetStack();
                 }
             }
-
-            /// <inheritdoc/>
-            int ISecurePooledObjectUser.PoolUserId => _poolUserId;
 
             /// <summary>
             /// The current element.
@@ -132,7 +217,6 @@ namespace System.Collections.Immutable
             {
                 get
                 {
-                    this.ThrowIfDisposed();
                     if (_current != null)
                     {
                         return _current.Value;
@@ -148,39 +232,34 @@ namespace System.Collections.Immutable
             object System.Collections.IEnumerator.Current => this.Current;
 
             /// <summary>
-            /// Disposes of this enumerator and returns the stack reference to the resource pool.
-            /// </summary>
-            public void Dispose()
-            {
-                _root = null;
-                _current = null;
-                Stack<RefAsValueType<Node>> stack;
-                if (_stack != null && _stack.TryUse(ref this, out stack))
-                {
-                    stack.ClearFastWhenEmpty();
-                    s_EnumeratingStacks.TryAdd(this, _stack);
-                }
-
-                _stack = null;
-            }
-
-            /// <summary>
             /// Advances enumeration to the next element.
             /// </summary>
             /// <returns>A value indicating whether there is another element in the enumeration.</returns>
             public bool MoveNext()
             {
-                this.ThrowIfDisposed();
                 this.ThrowIfChanged();
 
-                if (_stack != null)
+                if (_count > 0)
                 {
-                    var stack = _stack.Use(ref this);
-                    if (_remainingCount > 0 && stack.Count > 0)
+                    if (_remainingCount > 0)
                     {
-                        Node n = stack.Pop().Value;
-                        _current = n;
-                        this.PushNext(this.NextBranch(n));
+                        if (_currentIndex >= _currentNodeEnumeratingByIndex.Count)
+                        {
+                            Node n = PopFromStack();
+                            if (n == null)
+                            {
+                                _current = null;
+                                return false;
+                            }
+
+                            this.PushNext(this.NextBranch(n));
+                            _current = n;
+                        }
+                        else
+                        {
+                            _current = _currentNodeEnumeratingByIndex.GetNodeAtIndex(_reversed ? _currentNodeEnumeratingByIndex.Count - _currentIndex - 1 : _currentIndex);
+                            _currentIndex++;
+                        }
                         _remainingCount--;
                         return true;
                     }
@@ -195,11 +274,9 @@ namespace System.Collections.Immutable
             /// </summary>
             public void Reset()
             {
-                this.ThrowIfDisposed();
-
                 _enumeratingBuilderVersion = _builder != null ? _builder.Version : -1;
                 _remainingCount = _count;
-                if (_stack != null)
+                if (_count > 0)
                 {
                     this.ResetStack();
                 }
@@ -208,16 +285,15 @@ namespace System.Collections.Immutable
             /// <summary>Resets the stack used for enumeration.</summary>
             private void ResetStack()
             {
-                var stack = _stack.Use(ref this);
-                stack.ClearFastWhenEmpty();
+                _stackTopIndex = -1;
 
                 var node = _root;
                 var skipNodes = _reversed ? _root.Count - _startIndex - 1 : _startIndex;
-                while (!node.IsEmpty && skipNodes != this.PreviousBranch(node).Count)
+                while (node.Height > NodeEnumerateByIndexHeight && skipNodes != this.PreviousBranch(node).Count)
                 {
                     if (skipNodes < this.PreviousBranch(node).Count)
                     {
-                        stack.Push(new RefAsValueType<Node>(node));
+                        PushToStack(node);
                         node = this.PreviousBranch(node);
                     }
                     else
@@ -227,10 +303,8 @@ namespace System.Collections.Immutable
                     }
                 }
 
-                if (!node.IsEmpty)
-                {
-                    stack.Push(new RefAsValueType<Node>(node));
-                }
+                _currentNodeEnumeratingByIndex = node;
+                _currentIndex = skipNodes;
             }
 
             /// <summary>
@@ -242,23 +316,6 @@ namespace System.Collections.Immutable
             /// Obtains the left branch of the given node (or the right, if walking in reverse).
             /// </summary>
             private Node PreviousBranch(Node node) => _reversed ? node.Right : node.Left;
-
-            /// <summary>
-            /// Throws an <see cref="ObjectDisposedException"/> if this enumerator has been disposed.
-            /// </summary>
-            private void ThrowIfDisposed()
-            {
-                // Since this is a struct, copies might not have been marked as disposed.
-                // But the stack we share across those copies would know.
-                // This trick only works when we have a non-null stack.
-                // For enumerators of empty collections, there isn't any natural
-                // way to know when a copy of the struct has been disposed of.
-
-                if (_root == null || (_stack != null && !_stack.IsOwned(ref this)))
-                {
-                    Requires.FailObjectDisposed(this);
-                }
-            }
 
             /// <summary>
             /// Throws an exception if the underlying builder's contents have been changed since enumeration started.
@@ -278,17 +335,284 @@ namespace System.Collections.Immutable
             /// <param name="node">The starting node to push onto the stack.</param>
             private void PushNext(Node node)
             {
-                Requires.NotNull(node, nameof(node));
-                if (!node.IsEmpty)
+                int count = node.Height - NodeEnumerateByIndexHeight;
+                while (count-- > 0)
                 {
-                    var stack = _stack.Use(ref this);
-                    while (!node.IsEmpty)
-                    {
-                        stack.Push(new RefAsValueType<Node>(node));
-                        node = this.PreviousBranch(node);
-                    }
+                    PushToStack(node);
+                    node = this.PreviousBranch(node);
+                }
+                _currentIndex = 0;
+                _currentNodeEnumeratingByIndex = node;
+            }
+
+            /// <summary>
+            /// No-op dispose
+            /// </summary>
+            public void Dispose()
+            {
+            }
+
+            /// <summary>
+            /// Pushes a node to the enumerator stack
+            /// </summary>
+            /// <param name="node"></param>
+            private void PushToStack(Node node)
+            {
+                _stackTopIndex++;
+                switch (_stackTopIndex)
+                {
+                    case 0:
+                        _stackSlot0 = node;
+                        break;
+                    case 1:
+                        _stackSlot1 = node;
+                        break;
+                    case 2:
+                        _stackSlot2 = node;
+                        break;
+                    case 3:
+                        _stackSlot3 = node;
+                        break;
+                    case 4:
+                        _stackSlot4 = node;
+                        break;
+                    case 5:
+                        _stackSlot5 = node;
+                        break;
+                    case 6:
+                        _stackSlot6 = node;
+                        break;
+                    case 7:
+                        _stackSlot7 = node;
+                        break;
+                    case 8:
+                        _stackSlot8 = node;
+                        break;
+                    case 9:
+                        _stackSlot9 = node;
+                        break;
+                    case 10:
+                        _stackSlot10 = node;
+                        break;
+                    case 11:
+                        _stackSlot11 = node;
+                        break;
+                    case 12:
+                        _stackSlot12 = node;
+                        break;
+                    case 13:
+                        _stackSlot13 = node;
+                        break;
+                    case 14:
+                        _stackSlot14 = node;
+                        break;
+                    case 15:
+                        _stackSlot15 = node;
+                        break;
+                    case 16:
+                        _stackSlot16 = node;
+                        break;
+                    case 17:
+                        _stackSlot17 = node;
+                        break;
+                    case 18:
+                        _stackSlot18 = node;
+                        break;
+                    case 19:
+                        _stackSlot19 = node;
+                        break;
+                    case 20:
+                        _stackSlot20 = node;
+                        break;
+                    case 21:
+                        _stackSlot21 = node;
+                        break;
+                    case 22:
+                        _stackSlot22 = node;
+                        break;
+                    case 23:
+                        _stackSlot23 = node;
+                        break;
+                    case 24:
+                        _stackSlot24 = node;
+                        break;
+                    case 25:
+                        _stackSlot25 = node;
+                        break;
+                    case 26:
+                        _stackSlot26 = node;
+                        break;
+                    case 27:
+                        _stackSlot27 = node;
+                        break;
+                    case 28:
+                        _stackSlot28 = node;
+                        break;
+                    case 29:
+                        _stackSlot29 = node;
+                        break;
+                    case 30:
+                        _stackSlot30 = node;
+                        break;
+                    case 31:
+                        _stackSlot31 = node;
+                        break;
+                    case 32:
+                        _stackSlot32 = node;
+                        break;
+                    case 33:
+                        _stackSlot33 = node;
+                        break;
+                    case 34:
+                        _stackSlot34 = node;
+                        break;
+                    case 35:
+                        _stackSlot35 = node;
+                        break;
+                    case 36:
+                        _stackSlot36 = node;
+                        break;
+                    case 37:
+                        _stackSlot37 = node;
+                        break;
+                    case 38:
+                        _stackSlot38 = node;
+                        break;
+                    case 39:
+                        _stackSlot39 = node;
+                        break;
+                    case 40:
+                        _stackSlot40 = node;
+                        break;
+                    case 41:
+                        _stackSlot41 = node;
+                        break;
+                    case 42:
+                        _stackSlot42 = node;
+                        break;
+                    case 43:
+                        _stackSlot43 = node;
+                        break;
+                    case 44:
+                        _stackSlot44 = node;
+                        break;
+                    case 45:
+                        _stackSlot45 = node;
+                        break;
+                    case 46:
+                        _stackSlot46 = node;
+                        break;
                 }
             }
+
+            /// <summary>
+            /// Pops a node from the enumerator stack
+            /// </summary>
+            private Node PopFromStack()
+            {
+                var index = _stackTopIndex;
+                _stackTopIndex--;
+                switch (index)
+                {
+                    case 0:
+                        return _stackSlot0;
+                    case 1:
+                        return _stackSlot1;
+                    case 2:
+                        return _stackSlot2;
+                    case 3:
+                        return _stackSlot3;
+                    case 4:
+                        return _stackSlot4;
+                    case 5:
+                        return _stackSlot5;
+                    case 6:
+                        return _stackSlot6;
+                    case 7:
+                        return _stackSlot7;
+                    case 8:
+                        return _stackSlot8;
+                    case 9:
+                        return _stackSlot9;
+                    case 10:
+                        return _stackSlot10;
+                    case 11:
+                        return _stackSlot11;
+                    case 12:
+                        return _stackSlot12;
+                    case 13:
+                        return _stackSlot13;
+                    case 14:
+                        return _stackSlot14;
+                    case 15:
+                        return _stackSlot15;
+                    case 16:
+                        return _stackSlot16;
+                    case 17:
+                        return _stackSlot17;
+                    case 18:
+                        return _stackSlot18;
+                    case 19:
+                        return _stackSlot19;
+                    case 20:
+                        return _stackSlot20;
+                    case 21:
+                        return _stackSlot21;
+                    case 22:
+                        return _stackSlot22;
+                    case 23:
+                        return _stackSlot23;
+                    case 24:
+                        return _stackSlot24;
+                    case 25:
+                        return _stackSlot25;
+                    case 26:
+                        return _stackSlot26;
+                    case 27:
+                        return _stackSlot27;
+                    case 28:
+                        return _stackSlot28;
+                    case 29:
+                        return _stackSlot29;
+                    case 30:
+                        return _stackSlot30;
+                    case 31:
+                        return _stackSlot31;
+                    case 32:
+                        return _stackSlot32;
+                    case 33:
+                        return _stackSlot33;
+                    case 34:
+                        return _stackSlot34;
+                    case 35:
+                        return _stackSlot35;
+                    case 36:
+                        return _stackSlot36;
+                    case 37:
+                        return _stackSlot37;
+                    case 38:
+                        return _stackSlot38;
+                    case 39:
+                        return _stackSlot39;
+                    case 40:
+                        return _stackSlot40;
+                    case 41:
+                        return _stackSlot41;
+                    case 42:
+                        return _stackSlot42;
+                    case 43:
+                        return _stackSlot43;
+                    case 44:
+                        return _stackSlot44;
+                    case 45:
+                        return _stackSlot45;
+                    case 46:
+                        return _stackSlot46;
+                }
+
+                return null;
+            }
+
         }
     }
 }

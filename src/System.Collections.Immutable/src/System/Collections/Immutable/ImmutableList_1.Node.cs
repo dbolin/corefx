@@ -187,6 +187,28 @@ namespace System.Collections.Immutable
                 }
             }
 
+            /// <summary>
+            /// Gets the node of the set at the given index.
+            /// </summary>
+            /// <param name="index">The 0-based index of the node in the set to return.</param>
+            /// <returns>The node at the given position.</returns>
+            internal Node GetNodeAtIndex(int index)
+            {
+                Requires.Range(index >= 0 && index < this.Count, nameof(index));
+
+                if (index < _left._count)
+                {
+                    return _left.GetNodeAtIndex(index);
+                }
+
+                if (index > _left._count)
+                {
+                    return _right.GetNodeAtIndex(index - _left._count - 1);
+                }
+
+                return this;
+            }
+
 #if !NETSTANDARD10
             /// <summary>
             /// Gets a read-only reference to the element of the set at the given index.

@@ -683,9 +683,6 @@ namespace System.Collections.Immutable.Tests
             Assert.Equal("a", enumerator.Current);
             Assert.False(enumerator.MoveNext());
             Assert.Throws<InvalidOperationException>(() => enumerator.Current);
-
-            enumerator.Dispose();
-            Assert.Throws<ObjectDisposedException>(() => enumerator.Reset());
         }
 
         [Fact]
@@ -696,21 +693,9 @@ namespace System.Collections.Immutable.Tests
             var enumeratorCopy = enumerator;
             Assert.True(enumerator.MoveNext());
             enumerator.Dispose();
-            Assert.Throws<ObjectDisposedException>(() => enumerator.MoveNext());
-            Assert.Throws<ObjectDisposedException>(() => enumerator.Reset());
-            Assert.Throws<ObjectDisposedException>(() => enumerator.Current);
-            Assert.Throws<ObjectDisposedException>(() => enumeratorCopy.MoveNext());
-            Assert.Throws<ObjectDisposedException>(() => enumeratorCopy.Reset());
-            Assert.Throws<ObjectDisposedException>(() => enumeratorCopy.Current);
+            Assert.True(enumeratorCopy.MoveNext()); // copy should return true as it is at the beginning
             enumerator.Dispose(); // double-disposal should not throw
             enumeratorCopy.Dispose();
-
-            // We expect that acquiring a new enumerator will use the same underlying Stack<T> object,
-            // but that it will not throw exceptions for the new enumerator.
-            enumerator = collection.GetEnumerator();
-            Assert.True(enumerator.MoveNext());
-            Assert.Equal(collection[0], enumerator.Current);
-            enumerator.Dispose();
         }
 
         [Fact]
